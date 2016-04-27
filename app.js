@@ -67,8 +67,9 @@ Player.prototype.move = function(i, j, state){
   var y = this.position[1] + j;
   if (state.field[x][y] === this.enemy) {
     var finalLevel = state.levels.level;
-    $('h2').text('Yummmmm tasty mouse. Gameover. Final level: ' + finalLevel);
-    return initData();
+    $('h1').text('Yummmmm tasty mouse. Gameover. Final level: ' + finalLevel +'\n refresh page to play again');
+    $('.field').remove();
+    $('h2').remove();
   }
   if (state.field[x] === undefined ||
     state.field[x][y] === undefined){
