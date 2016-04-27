@@ -7,20 +7,35 @@ var buildField = function(){
   });
 };
 
-var populateField = function(field){
+var populateField = function(state){
   var $field = $('.field');
   $field.children().remove();
-  var len_i = field.length;
+  var len_i = state.field.length;
   for(var i = 0; i < len_i; i++){
-    var len_j = field[i].length;
+    var len_j = state.field[i].length;
     var $row = $('<div class=row></div>');
     for(var j = 0; j < len_j; j++){
       var $cell = $('<div class=cell></div>');
-      $cell.attr('id', field[i][j]);
+      $cell.attr('id', state.field[i][j]);
       $row.append($cell);
     }
     $field.append($row);
   }
+};
+
+var updateField = function(targetPlayer, newPos){
+  var marker = '#' + targetPlayer.marker;
+  $(marker).attr('id', 'n');
+  $target = $('.row').first();
+  for(var i = 0; i < newPos[0]; i++){
+    $target = $target.next();
+  }
+  newPos[1] = Math.max(newPos[1],0);
+  $target = $target.children().first();
+  for(var j = 0; j < newPos[1]; j++){
+    $target = $target.next();
+  }
+  $target.attr('id', targetPlayer.marker);
 };
 
 var Player = function(position, marker){
@@ -29,24 +44,26 @@ var Player = function(position, marker){
   this.enemy = marker === 'c' ? 'm' : 'c';
 };
 
-Player.prototype.init = function(field){
-  field[this.position[0]][this.position[1]] = this.marker;
-  return field;
+Player.prototype.init = function(state){
+  state.field[this.position[0]][this.position[1]] = this.marker;
+  return state;
 };
 
-Player.prototype.move = function(i, j, field){
-  if (field[this.position[0] + i][this.position[1] + j] === this.enemy) {
+Player.prototype.move = function(i, j, state){
+  if (state.field[this.position[0] + i][this.position[1] + j] === this.enemy) {
     $('h2').text('Yummmmm tasty mouse. Gameover.');
+    state = initData();
+    return state;
   }
-  if (field[this.position[0] + i] === undefined ||
-    field[this.position[0] + i][this.position[1] + j] === undefined){
-    return field;
+  if (state.field[this.position[0] + i] === undefined ||
+    state.field[this.position[0] + i][this.position[1] + j] === undefined){
+    return;
   }
-  field[this.position[0]][this.position[1]] = 'n';
+  state.field[this.position[0]][this.position[1]] = 'n';
   this.position[0] = this.position[0] + i;
   this.position[1] = this.position[1] + j;
-  field[this.position[0]][this.position[1]] = this.marker;
-  return field;
+  state.field[this.position[0]][this.position[1]] = this.marker;
+  return [state, [this.position[0], this.position[1]]];
 };
 
 Player.prototype.direction = function(state){
@@ -62,14 +79,14 @@ var Levels = function(){
   this.catSpeed = 500,
   this.next = function(){
     this.level++;
-    this.catSpeed = Math.floor(this.catSpeed*.8);
+    this.catSpeed = Math.floor(this.catSpeed * .8);
     $('h2').text('Level ' + this.level);
   },
   this.reset = function(){
     this.level = 1;
     this.catSpeed = 500;
     $('h2').text('Level ' + this.level);
-  };
+  }
 };
 
 var initData = function(){
@@ -78,21 +95,22 @@ var initData = function(){
   state.cat = new Player([18,18], 'c');
   state.levels = new Levels();
   state.field = buildField();
-  state.field = state.mouse.init(state.field);
-  state.field = state.cat.init(state.field);
+  state = state.mouse.init(state);
+  state = state.cat.init(state);
+  populateField(state);
   return state;
 };
 
 $(document).ready(function() {
   var state = initData();
-  populateField(state.field);
 
   var levelControl = setInterval(function(){
     clearInterval(catControl);
     var catControl = setInterval(function(){
       var d = state.cat.direction(state);
-      state.field = state.cat.move(d[0], d[1], state.field);
-      populateField(state.field);
+      var resultC = state.cat.move(d[0], d[1], state);
+      state = resultC[0];
+      updateField(state.cat, resultC[1]);
     }, state.levels.catSpeed);
   state.levels.next();
   }, 5000);
@@ -109,8 +127,9 @@ $(document).ready(function() {
     } if (e.keyCode == 40) { 
       i = 1;
     } 
-    state.field = state.mouse.move(i, j, state.field);
-    populateField(state.field);
+    var resultM = state.mouse.move(i, j, state);
+    state = resultM[0];
+    updateField(state.mouse, resultM[1]);
   });
 });
 
