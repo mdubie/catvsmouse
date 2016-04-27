@@ -32,26 +32,6 @@ var populateField = function(state){
 };
 
 /**
- * Updates the HTML field after the data field has been updated (every time a player is moved)
- * @param  {object} targetPlayer cat or mouse, holds that specific Players character
- * @param  {array} newPos holds the coordinates of new player position
- */
-var updateField = function(targetPlayer, newPos){
-  var marker = '#' + targetPlayer.marker;
-  $(marker).attr('id', 'n');
-  $target = $('.row').first();
-  for(var i = 0; i < newPos[0]; i++){
-    $target = $target.next();
-  }
-  newPos[1] = Math.max(newPos[1],0);
-  $target = $target.children().first();
-  for(var j = 0; j < newPos[1]; j++){
-    $target = $target.next();
-  }
-  $target.attr('id', targetPlayer.marker);
-};
-
-/**
  * Constructor
  * @param {array} position initial position of that player
  * @param {string} marker used to defined the data field
@@ -60,6 +40,7 @@ var Player = function(position, marker){
   this.position = position;
   this.marker = marker;
   this.enemy = marker === 'c' ? 'm' : 'c';
+  this.newPos = [];
 };
 
 /**
@@ -82,21 +63,39 @@ Player.prototype.init = function(state){
  * @return {object}       returns state object (and new position of the player)
  */
 Player.prototype.move = function(i, j, state){
-  if (state.field[this.position[0] + i][this.position[1] + j] === this.enemy) {
+  var x = this.position[0] + i;
+  var y = this.position[1] + j;
+  if (state.field[x][y] === this.enemy) {
     var finalLevel = state.levels.level;
     $('h2').text('Yummmmm tasty mouse. Gameover. Final level: ' + finalLevel);
-    state = initData();
+    return initData();
+  }
+  if (state.field[x] === undefined ||
+    state.field[x][y] === undefined){
     return state;
   }
-  if (state.field[this.position[0] + i] === undefined ||
-    state.field[this.position[0] + i][this.position[1] + j] === undefined){
-    return;
+  state.field[x - i][y - j] = 'n';
+  this.position[0] = x;
+  this.position[1] = y;
+  state.field[x][y] = this.marker;
+  this.newPos = [x, y];
+  return state;
+};
+
+/**
+ * updates HTML field after player makes a move
+ */
+Player.prototype.updateField = function(){
+  $('#' + this.marker).attr('id', 'n');
+  $target = $('.row').first();
+  for(var i = 0; i < this.newPos[0]; i++){
+    $target = $target.next();
   }
-  state.field[this.position[0]][this.position[1]] = 'n';
-  this.position[0] = this.position[0] + i;
-  this.position[1] = this.position[1] + j;
-  state.field[this.position[0]][this.position[1]] = this.marker;
-  return [state, [this.position[0], this.position[1]]];
+  $target = $target.children().first();
+  for(var j = 0; j < this.newPos[1]; j++){
+    $target = $target.next();
+  }
+  $target.attr('id', this.marker);
 };
 
 /**
@@ -122,11 +121,6 @@ var Levels = function(){
     this.level++;
     this.catSpeed = Math.floor(this.catSpeed * .8);
     $('h2').text('Level ' + this.level);
-  },
-  this.reset = function(){
-    this.level = 1;
-    this.catSpeed = 500;
-    $('h2').text('Level ' + this.level);
   };
 };
 
@@ -148,21 +142,19 @@ var initData = function(){
 
 $(document).ready(function() {
   var state = initData();
-
+  
   /**
    * Controls the levels timer
    */
   var levelControl = setInterval(function(){
     clearInterval(catControl);
-
     /**
      * Controls the cat movement intervals
      */
     var catControl = setInterval(function(){
       var d = state.cat.direction(state);
-      var resultC = state.cat.move(d[0], d[1], state);
-      state = resultC[0];
-      updateField(state.cat, resultC[1]);
+      state = state.cat.move(d[0], d[1], state);
+      state.cat.updateField();
     }, state.levels.catSpeed);
   state.levels.next();
   }, 5000);
@@ -183,12 +175,7 @@ $(document).ready(function() {
     } if (e.keyCode == 40) { 
       i = 1;
     } 
-    var resultM = state.mouse.move(i, j, state);
-    state = resultM[0];
-    updateField(state.mouse, resultM[1]);
+    state = state.mouse.move(i, j, state);
+    state.mouse.updateField();
   });
 });
-
-
-
-

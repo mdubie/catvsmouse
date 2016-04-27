@@ -1,27 +1,20 @@
 # catvsmouse
-simple game
 
+//Issues to fix
+Refactor code in 'once document is ready' function to not rely on accessing variables global to that function
 
-landing screen
-mouse 1x1 square
-cat 3x3 square
+Refeactor nested setInterval for level and cat speed control
 
-mouse speed
-cat speed
+Restart game once eaten
 
-each timestep
+Better n-th child selection method in updateField (nested for loops costly)
 
-mouse {
-  size = 1x1;
-  speed = (some sort of delay fn);
-  position = i,j;
-}
+Levels constructor vs levels object
 
-cat {
-  size = 3x3;
-  speed = (some sort of delay fn);
-  position = i,j;
-}
+Look at functional classes vs psuedoclassical
+
+Cleaner function for handling user input (break out the calling of the move)
+
 
 //build progression//
 xbuild map
@@ -30,15 +23,16 @@ xbuild map display fn
 xplace mouse
   xadd class towhere the mouse is and css format it
 xallow mouse to move on key up
-build cat
-make cat move towards mouse
-allow cat to kill the mouse
-  is cat touching mouse fn
-increase speed of cat over time
-have 'levels' flash once cat reaches a certain speed
-place obstacles
-randomly generate obstacles
-add a start button
-user input mouse speed
-user input mouse size
-user input cat size
+xbuild cat
+xmake cat move towards mouse
+xallow cat to kill the mouse
+  xis cat touching mouse fn
+xincrease speed of cat over time
+xhave 'levels' flash once cat reaches a certain speed
+
+//to do
+xincrease speed
+  xwork around nested loops of rebuilding map
+  xrexamine the whole id/class thing
+xhave levels stop incrementing once eaten
+restart game once eaten
