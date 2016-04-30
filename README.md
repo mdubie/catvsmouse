@@ -1,5 +1,14 @@
 # catvsmouse
 
+//Jack recs to fix
+Main loop smaller
+
+Pseudoclassesical > functional ( Immutable.js lib? )
+
+reduce state representation
+
+separate state and rendering completely
+
 //Issues to fix
 Refactor code in 'once document is ready' function to not rely on accessing variables global to that function
 
