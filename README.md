@@ -1,5 +1,21 @@
 # catvsmouse
 
+//Refactor progression
+xmake new branch git
+turn off cat and levels
+make the state more simple (no more 'ns', just cat and mouse pos)
+  delete 'build field'
+  add field size (20x20 in populate field)
+  remove cell ids in populate field
+  in move, remove the changing of state field to n
+  update field change switching attr to 'n' to removing attribute all together
+
+move mouse around
+separate all rendering calls to their own fns
+switch over to a window main loop
+swith over to html canvas
+
+
 //Jack recs to fix
 Main loop smaller
 

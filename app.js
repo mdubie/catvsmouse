@@ -1,30 +1,17 @@
-/**
- * Builds an x,y array of populated with 'n' characters, 'n' represents nothing
- * @return {array}
- */
-var buildField = function(){
-  var x = 20;
-  var y = 20;
-  var rows = new Array(x + 1).join('n').split('');
-  return rows.map(function(){
-    return new Array(y + 1).join('n').split('');
-  });
-};
 
 /**
  * On initilization, populates HTML field based upon the data field
  * @param  {object} state contains field property used to build HTML
  */
-var populateField = function(state){
+var populateField = function(){
+  const fieldWidth = 20;
+  const fieldHeight = 20;
   var $field = $('.field');
   $field.children().remove();
-  var len_i = state.field.length;
-  for(var i = 0; i < len_i; i++){
-    var len_j = state.field[i].length;
+  for(var i = 0; i < fieldWidth; i++){
     var $row = $('<div class=row></div>');
-    for(var j = 0; j < len_j; j++){
+    for(var j = 0; j < fieldHeight; j++){
       var $cell = $('<div class=cell></div>');
-      $cell.attr('id', state.field[i][j]);
       $row.append($cell);
     }
     $field.append($row);
@@ -34,23 +21,12 @@ var populateField = function(state){
 /**
  * Constructor
  * @param {array} position initial position of that player
- * @param {string} marker used to defined the data field
+ * @param {string} id used to defined the data field
  */
-var Player = function(position, marker){
+var Player = function(position, id){
   this.position = position;
-  this.marker = marker;
-  this.enemy = marker === 'c' ? 'm' : 'c';
-  this.newPos = [];
-};
-
-/**
- * Initilizes player on the data field
- * @param  {object} state holds data field for storing locations of players
- * @return {object}       returns state with player placed on the data field
- */
-Player.prototype.init = function(state){
-  state.field[this.position[0]][this.position[1]] = this.marker;
-  return state;
+  this.id = id;
+  this.enemy = id === 'cat' ? 'mouse' : 'cat';
 };
 
 /**
@@ -62,41 +38,35 @@ Player.prototype.init = function(state){
  * @param  {object} state current data, use the state field and level data
  * @return {object}       returns state object (and new position of the player)
  */
-Player.prototype.move = function(i, j, state){
-  var x = this.position[0] + i;
-  var y = this.position[1] + j;
-  if (state.field[x][y] === this.enemy) {
-    var finalLevel = state.levels.level;
-    $('h1').text('Yummmmm tasty mouse. Gameover. Final level: ' + finalLevel +'\n refresh page to play again');
-    $('.field').remove();
-    $('h2').remove();
-  }
-  if (state.field[x] === undefined ||
-    state.field[x][y] === undefined){
+Player.prototype.updateState = function(d, state){
+  var i = this.position[0] + d[0];
+  var j = this.position[1] + d[1];
+  var enemyPos = state[this.enemy].position;
+  if (i === enemyPos[0] && j === enemyPos[1]) {
+    //termination of game function
     return state;
   }
-  state.field[x - i][y - j] = 'n';
-  this.position[0] = x;
-  this.position[1] = y;
-  state.field[x][y] = this.marker;
-  this.newPos = [x, y];
+  if (!(0 <= i && i < 20 && 0 <= j && j < 20)){
+    return state;
+  }
+  this.position = [i, j];
   return state;
 };
 
 /**
  * updates HTML field after player makes a move
  */
-Player.prototype.updateField = function(){
-  $('#' + this.marker).attr('id', 'n');
+Player.prototype.updateDisplay = function(){
+  $('#' + this.id).removeAttr('id', this.id);
   $target = $('.row').first();
-  for(var i = 0; i < this.newPos[0]; i++){
+  for(var i = 0; i < this.position[0]; i++){
     $target = $target.next();
   }
   $target = $target.children().first();
-  for(var j = 0; j < this.newPos[1]; j++){
+  for(var j = 0; j < this.position[1]; j++){
     $target = $target.next();
   }
-  $target.attr('id', this.marker);
+  $target.attr('id', this.id);
 };
 
 /**
@@ -105,24 +75,11 @@ Player.prototype.updateField = function(){
  * @return {array}       direction of cat to go next move
  */
 Player.prototype.direction = function(state){
-  var axis_i = (state.mouse.position[0] > state.cat.position[0]) ? 1 : -1;
-  var axis_j = (state.mouse.position[1] > state.cat.position[1]) ? 1 : -1;
-  var result = [axis_i, axis_j];
+  var i = (state.mouse.position[0] > state.cat.position[0]) ? 1 : -1;
+  var j = (state.mouse.position[1] > state.cat.position[1]) ? 1 : -1;
+  var result = [i, j];
   result[Math.floor(2*Math.random())] = 0;
   return result;
-};
-
-/**
- * constructor for levels object
- */
-var Levels = function(){
-  this.level = 0,
-  this.catSpeed = 500,
-  this.next = function(){
-    this.level++;
-    this.catSpeed = Math.floor(this.catSpeed * .8);
-    $('h2').text('Level ' + this.level);
-  };
 };
 
 /**
@@ -131,52 +88,48 @@ var Levels = function(){
  */
 var initData = function(){
   var state = {};
-  state.mouse = new Player([1,1], 'm');
-  state.cat = new Player([18,18], 'c');
-  state.levels = new Levels();
-  state.field = buildField();
-  state = state.mouse.init(state);
-  state = state.cat.init(state);
-  populateField(state);
+  state.mouse = new Player([1,1], 'mouse');
+  state.cat = new Player([18,18], 'cat');
   return state;
 };
 
+var initDisplay = function(state){
+  populateField();
+  state.mouse.updateDisplay();
+  state.cat.updateDisplay();
+};
+
+var captureUserInput = function(e){
+  var d = [0,0];
+  if (e.keyCode == 37) {
+    d[1] = -1;
+  } if (e.keyCode == 38) { 
+    d[0] = -1;
+  } if (e.keyCode == 39) { 
+    d[1] = 1;
+  } if (e.keyCode == 40) { 
+    d[0] = 1;
+  }
+  return d;
+}
+
 $(document).ready(function() {
   var state = initData();
-  
-  /**
-   * Controls the levels timer
-   */
-  var levelControl = setInterval(function(){
-    clearInterval(catControl);
-    /**
-     * Controls the cat movement intervals
-     */
-    var catControl = setInterval(function(){
-      var d = state.cat.direction(state);
-      state = state.cat.move(d[0], d[1], state);
-      state.cat.updateField();
-    }, state.levels.catSpeed);
-  state.levels.next();
-  }, 5000);
+  initDisplay(state);
+
+  var catControl = setInterval(function(){
+    var d = state.cat.direction(state);
+    state = state.cat.updateState(d, state);
+    state.cat.updateDisplay();
+  }, 200);
 
   /**
    * Takes user input from keys and translates into mouse movement
    * @param  {number} e keyboard event
-   */
+   */ 
   $(document).keydown(function(e){
-    var i = 0;
-    var j = 0;
-    if (e.keyCode == 37) {
-      j = -1;
-    } if (e.keyCode == 38) { 
-      i = -1;
-    } if (e.keyCode == 39) { 
-      j = 1;
-    } if (e.keyCode == 40) { 
-      i = 1;
-    } 
-    state = state.mouse.move(i, j, state);
-    state.mouse.updateField();
+    var d = captureUserInput(e);
+    state = state.mouse.updateState(d, state);
+    state.mouse.updateDisplay();
   });
 });
