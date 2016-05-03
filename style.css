@@ -7,7 +7,7 @@ html, h1, h2, body, div, p {
 body {
   background-color: #222;
   margin: 0 auto;
-  width: 855px;
+  width: 706px;
   text-align: center;
 }
 
@@ -28,31 +28,7 @@ h2 {
   padding: 20px;
 }
 
-.field {
+#canv {
   background-color: #333;
   border: 3px solid #666;
-}
-
-.row {
-  display: block;
-}
-
-.cell {
-  width: 40px;
-  height: 40px;
-  background-color: #444444;
-  border: 1px solid #555;
-  display: inline-block;s
-  box-shadow: 1px 1px #222;
-}
-
-#mouse {
-  background-color: #6B82AF;
-  box-shadow: 1px 1px #222;
-  border-radius: 2px;
-}
-
-#cat {
-  background-color: #E7B283;
-  box-shadow: 1px 1px #222;
 }
